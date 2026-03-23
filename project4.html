@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Leave Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #111418;
+      color: #ececf3;
+    }
+
+    .page-header {
+      background-color: #2b6cb0;
+      color: white;
+      padding: 30px 0;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .page-header p {
+      margin: 5px 0 0 0;
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+
+    .stat-box {
+      background: rgb(39, 38, 38);
+      border-radius: 10px;
+      padding: 15px 20px;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .stat-box .big-number {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-box .label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    .stat-box.pending .big-number  { color: #d69e2e; }
+    .stat-box.approved .big-number { color: #2f855a; }
+    .stat-box.rejected .big-number { color: #c53030; }
+
+    .card-section {
+      background: rgb(13, 12, 14);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #c3daf1;
+      border-bottom: 2px solid #ebf4ff;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-submit {
+      background-color: #2b6cb0;
+      color: white;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-submit:hover {
+      background-color: #022146;
+    }
+
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    thead th {
+      background-color: #ebf4ff;
+      color: #0f0f0f;
+      font-weight: 700;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+    }
+
+    thead th:first-child { border-radius: 8px 0 0 8px; }
+    thead th:last-child  { border-radius: 0 8px 8px 0; }
+
+    tbody tr {
+      border-bottom: 1px solid #f0f4f8;
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background-color: #f7fafc;
+    }
+
+    tbody td {
+      padding: 13px 14px;
+      vertical-align: middle;
+      border: none;
+    }
+
+    .staff-name {
+      font-weight: 700;
+    }
+
+    .dept-text {
+      font-size: 0.75rem;
+      color: #718096;
+    }
+
+    .days-count {
+      font-weight: 700;
+      color: #2b6cb0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-pending  { background: #fefcbf; color: #b7791f; }
+    .badge-approved { background: #c6f6d5; color: #276749; }
+    .badge-rejected { background: #fed7d7; color: #9b2c2c; }
+
+    .btn-approve, .btn-reject {
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-approve { background: #c6f6d5; color: #276749; margin-right: 4px; }
+    .btn-reject  { background: #fed7d7; color: #9b2c2c; }
+
+    .btn-approve:hover, .btn-reject:hover { opacity: 0.75; }
+
+    .action-done {
+      font-size: 0.78rem;
+      color: #a0aec0;
+      font-style: italic;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 50px 20px;
+      color: #dfdfe6;
+    }
+
+    .empty-message .emoji {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .empty-message p {
+      font-size: 0.9rem;
+    }
+
+    .results-count {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: #718096;
+    }
+
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+    }
+
+    .toast-message {
+      background: #e6e3e3;
+      color: rgb(235, 229, 229);
+      padding: 12px 20px;
+      border-radius: 10px;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease, fadeOut 0.4s ease 2.6s forwards;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(120%); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page-header">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h1>📋 Staff Leave Dashboard</h1>
+          <p>Submit and manage leave requests</p>
+        </div>
+        <div class="d-flex gap-3 flex-wrap">
+          <div class="stat-box pending">
+            <div class="big-number" id="stat-pending">0</div>
+            <div class="label">Pending</div>
+          </div>
+          <div class="stat-box approved">
+            <div class="big-number" id="stat-approved">0</div>
+            <div class="label">Approved</div>
+          </div>
+          <div class="stat-box rejected">
+            <div class="big-number" id="stat-rejected">0</div>
+            <div class="label">Rejected</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-4">
+
+    <div class="card-section">
+      <div class="section-title">✏️ Submit a Leave Request</div>
+      <form id="leaveForm" novalidate>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="staffName">Staff Name</label>
+            <input type="text" id="staffName" class="form-control" placeholder="Enter full name" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="department">Department</label>
+            <select id="department" class="form-select" required>
+              <option value="" disabled selected>-- Select department --</option>
+              <option>CTO</option>
+              <option>Software Programmer</option>
+              <option>Marketing</option>
+              <option>Finance</option>
+              <option>HR</option>
+              <option>Operations</option>
+              <option>Intern</option>
+              <option>Mentee</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="leaveType">Leave Type</label>
+            <select id="leaveType" class="form-select" required>
+              <option value="" disabled selected>-- Select type --</option>
+              <option>Annual</option>
+              <option>Sick</option>
+              <option>Casual</option>
+              <option>Maternity</option>
+              <option>Paternity</option>
+              <option>Conjugal</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="startDate">Start Date</label>
+            <input type="date" id="startDate" class="form-control" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="endDate">End Date</label>
+            <input type="date" id="endDate" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="reason">Reason</label>
+            <textarea id="reason" class="form-control" rows="2" placeholder="Briefly explain the reason for leave" required></textarea>
+          </div>
+          <div class="col-12 d-flex justify-content-end">
+            <button type="submit" class="btn-submit">Submit Request →</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-section">
+      <div class="section-title">📄 All Leave Requests<br>(STRICTLY HR SECTION)</div>
+      <div class="filter-row">
+        <label for="filterStatus"><strong>Filter by Status:</strong></label>
+        <select id="filterStatus" class="form-select" style="width: auto;">
+          <option value="All">All Requests</option>
+          <option value="Pending">Pending</option>
+          <option value="Approved">Approved</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <span class="results-count" id="resultsCount"></span>
+      </div>
+      <div style="overflow-x: auto;">
+        <table id="leaveTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Staff Member</th>
+              <th>Leave Type</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty-message" id="emptyMessage">
+          <div class="emoji">📭</div>
+          <p>No leave requests yet. Submit one above!</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    let allRequests = [];
+    let nextId = 1000;
+
+    let leaveForm      = document.getElementById("leaveForm");
+    let inputName      = document.getElementById("staffName");
+    let inputDept      = document.getElementById("department");
+    let inputType      = document.getElementById("leaveType");
+    let inputStartDate = document.getElementById("startDate");
+    let inputEndDate   = document.getElementById("endDate");
+    let inputReason    = document.getElementById("reason");
+    let filterDropdown = document.getElementById("filterStatus");
+    let tableBody      = document.getElementById("tableBody");
+    let emptyMessage   = document.getElementById("emptyMessage");
+    let resultsCount   = document.getElementById("resultsCount");
+    let statPending    = document.getElementById("stat-pending");
+    let statApproved   = document.getElementById("stat-approved");
+    let statRejected   = document.getElementById("stat-rejected");
+
+    function calculateDays(startDateString, endDateString) {
+      let startDate      = new Date(startDateString);
+      let endDate        = new Date(endDateString);
+      let differenceInMs = endDate - startDate;
+      let days           = differenceInMs / (1000 * 60 * 60 * 24);
+      return days + 1;
+    }
+
+    function formatDate(dateString) {
+      let parts      = dateString.split("-");
+      let year       = parts[0];
+      let month      = parts[1];
+      let day        = parts[2];
+      let monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      let monthName  = monthNames[parseInt(month) - 1];
+      return day + " " + monthName + " " + year;
+    }
+
+    function showToast(message) {
+      let container        = document.getElementById("toast-container");
+      let toastDiv         = document.createElement("div");
+      toastDiv.className   = "toast-message";
+      toastDiv.textContent = message;
+      container.appendChild(toastDiv);
+      setTimeout(function() {
+        toastDiv.remove();
+      }, 3000);
+    }
+
+    function updateStats() {
+      let pendingCount = 0;
+      for (let i = 0; i < allRequests.length; i++) {
+        if (allRequests[i].status === "Pending") pendingCount++;
+      }
+      let approvedCount = 0;
+      for (let i = 0; i < allRequests.length; i++) {
+        if (allRequests[i].status === "Approved") approvedCount++;
+      }
+      let rejectedCount = 0;
+      for (let i = 0; i < allRequests.length; i++) {
+        if (allRequests[i].status === "Rejected") rejectedCount++;
+      }
+      statPending.textContent  = pendingCount;
+      statApproved.textContent = approvedCount;
+      statRejected.textContent = rejectedCount;
+    }
+
+    function renderTable() {
+      let selectedFilter   = filterDropdown.value;
+      let filteredRequests = [];
+
+      for (let i = 0; i < allRequests.length; i++) {
+        let request = allRequests[i];
+        if (selectedFilter === "All" || request.status === selectedFilter) {
+          filteredRequests.push(request);
+        }
+      }
+
+      resultsCount.textContent = "Showing " + filteredRequests.length + " request(s)";
+      tableBody.innerHTML = "";
+
+      if (filteredRequests.length === 0) {
+        emptyMessage.style.display = "block";
+        if (allRequests.length === 0) {
+          emptyMessage.querySelector("p").textContent = "No leave requests yet. Submit one above!";
+        } else {
+          emptyMessage.querySelector("p").textContent = "No " + selectedFilter.toLowerCase() + " requests found.";
+        }
+        return;
+      }
+
+      emptyMessage.style.display = "none";
+
+      for (let i = 0; i < filteredRequests.length; i++) {
+        let req = filteredRequests[i];
+
+        let badgeClass = "";
+        if (req.status === "Pending")  badgeClass = "badge badge-pending";
+        if (req.status === "Approved") badgeClass = "badge badge-approved";
+        if (req.status === "Rejected") badgeClass = "badge badge-rejected";
+
+        let badgeHTML = '<span class="' + badgeClass + '">' + req.status + '</span>';
+
+        let actionHTML = "";
+        if (req.status === "Pending") {
+          actionHTML  = '<button class="btn-approve" onclick="approveRequest(' + req.id + ')">✔ Approve</button>';
+          actionHTML += '<button class="btn-reject"  onclick="rejectRequest('  + req.id + ')">✘ Reject</button>';
+        } else {
+          actionHTML = '<span class="action-done">Decision made</span>';
+        }
+
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><small style="color:#a0aec0;">#${req.id}</small></td>
+          <td>
+            <div class="staff-name">${req.name}</div>
+            <div class="dept-text">${req.department}</div>
+          </td>
+          <td>${req.type}</td>
+          <td>${formatDate(req.startDate)}</td>
+          <td>${formatDate(req.endDate)}</td>
+          <td><span class="days-count">${req.days}d</span></td>
+          <td>${badgeHTML}</td>
+          <td>${actionHTML}</td>
+        `;
+        tableBody.appendChild(tr);
+      }
+
+      updateStats();
+    }
+
+    function approveRequest(requestId) {
+      for (let i = 0; i < allRequests.length; i++) {
+        if (allRequests[i].id === requestId) {
+          allRequests[i].status = "Approved";
+          break;
+        }
+      }
+      renderTable();
+      showToast("✔ Request #" + requestId + " has been Approved");
+    }
+
+    function rejectRequest(requestId) {
+      for (let i = 0; i < allRequests.length; i++) {
+        if (allRequests[i].id === requestId) {
+          allRequests[i].status = "Rejected";
+          break;
+        }
+      }
+      renderTable();
+      showToast("✘ Request #" + requestId + " has been Rejected");
+    }
+
+    leaveForm.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      let name      = inputName.value.trim();
+      let dept      = inputDept.value;
+      let type      = inputType.value;
+      let startDate = inputStartDate.value;
+      let endDate   = inputEndDate.value;
+      let reason    = inputReason.value.trim();
+
+      if (name === "" || dept === "" || type === "" || startDate === "" || endDate === "" || reason === "") {
+        showToast("⚠️ Please fill in all fields before submitting.");
+        return;
+      }
+
+      let days = calculateDays(startDate, endDate);
+      if (days <= 0) {
+        showToast("⚠️ End date must be the same as or after the start date.");
+        return;
+      }
+
+      nextId = nextId + 1;
+
+      let newRequest = {
+        id:         nextId,
+        name:       name,
+        department: dept,
+        type:       type,
+        startDate:  startDate,
+        endDate:    endDate,
+        days:       days,
+        reason:     reason,
+        status:     "Pending"
+      };
+
+      allRequests.unshift(newRequest);
+      filterDropdown.value = "All";
+      renderTable();
+      leaveForm.reset();
+      showToast("✅ Leave request #" + nextId + " submitted successfully!");
+    });
+
+    filterDropdown.addEventListener("change", function() {
+      renderTable();
+    });
+
+    renderTable();
+  </script>
+
+</body>
+</html>
